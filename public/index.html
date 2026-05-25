@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Stepwise — Master exam technique, one step at a time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  :root{
+    --bg:#FBF7EE; --bg2:#F3ECDC; --card:#FFFFFF; --ink:#27313A; --muted:#8A93A0; --line:#E8E1D2;
+    --grass:#3AC569; --grass-dk:#27A152; --sky:#2B8AF0; --sky-dk:#1C6FCB;
+    --gold:#FFC23C; --gold-dk:#E0A11F; --berry:#FF5470; --berry-dk:#DB3A56; --grape:#7A5CFF;
+    --shadow:0 10px 30px rgba(39,49,58,.10); --radius:20px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Nunito',ui-rounded,'Segoe UI',system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 600px at 110% -10%, rgba(122,92,255,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(58,197,105,.12), transparent 55%),
+      var(--bg);
+    color:var(--ink); min-height:100vh; -webkit-font-smoothing:antialiased;
+  }
+  #root{max-width:760px;margin:0 auto;padding:0 16px 64px;}
+  h1,h2,h3{font-family:'Baloo 2',ui-rounded,system-ui,sans-serif;font-weight:800;letter-spacing:-.01em;margin:0;}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;padding:14px 6px;margin-bottom:6px;
+    background:linear-gradient(var(--bg), rgba(251,247,238,.85));backdrop-filter:blur(6px);}
+  .logo{display:flex;align-items:center;gap:10px;font-family:'Baloo 2';font-weight:800;font-size:22px;}
+  .logo .mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(160deg,var(--grass),#54d97f);
+    box-shadow:0 4px 0 var(--grass-dk);display:grid;place-items:center;color:#fff;font-size:18px;transform:rotate(-4deg);}
+  .spacer{flex:1;}
+  .xp{display:flex;align-items:center;gap:6px;font-weight:800;color:var(--gold-dk);background:#FFF6DE;border:2px solid #F4E2A8;padding:6px 12px;border-radius:999px;font-size:15px;}
+  .iconbtn{border:none;background:#fff;border:2px solid var(--line);color:var(--ink);width:40px;height:40px;border-radius:12px;
+    font-size:18px;cursor:pointer;display:grid;place-items:center;box-shadow:0 3px 0 var(--line);transition:transform .05s;}
+  .iconbtn:active{transform:translateY(2px);box-shadow:none;}
+
+  .card{background:var(--card);border:2px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+  .btn{font-family:'Baloo 2';font-weight:800;font-size:17px;letter-spacing:.02em;border:none;border-radius:16px;padding:15px 22px;
+    cursor:pointer;color:#fff;width:100%;background:var(--grass);box-shadow:0 5px 0 var(--grass-dk);transition:transform .06s, box-shadow .06s;text-transform:uppercase;}
+  .btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--grass-dk);}
+  .btn:disabled{background:#D8DEE6;box-shadow:0 5px 0 #C2C9D2;color:#fff;cursor:not-allowed;}
+  .btn.ghost{background:#fff;color:var(--ink);box-shadow:0 5px 0 var(--line);border:2px solid var(--line);}
+
+  .hero{padding:30px 22px 26px;margin-top:8px;text-align:center;position:relative;overflow:hidden;}
+  .hero h1{font-size:30px;line-height:1.05;}
+  .hero .tag{color:var(--muted);font-weight:700;margin-top:8px;font-size:15px;}
+  .authinput{width:100%;border:2px solid var(--line);border-radius:14px;padding:14px 15px;font-family:'Nunito';font-weight:700;font-size:16px;outline:none;margin-bottom:12px;background:#FCFBF7;}
+  .authinput:focus{border-color:var(--grass);background:#fff;}
+  .drop{border:2.5px dashed var(--line);border-radius:18px;padding:20px;margin-top:14px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;background:#FCFBF7;transition:.15s;}
+  .drop:hover{border-color:var(--grass);background:#F6FFF8;}
+  .drop.done{border-style:solid;border-color:var(--grass);background:#F1FBF3;}
+  .drop .ic{font-size:26px;width:52px;height:52px;border-radius:14px;display:grid;place-items:center;background:#fff;border:2px solid var(--line);flex:none;}
+  .drop.done .ic{background:var(--grass);color:#fff;border-color:var(--grass);}
+  .drop .t{font-weight:800;font-family:'Baloo 2';font-size:16px;}
+  .drop .s{color:var(--muted);font-size:13px;font-weight:700;margin-top:2px;word-break:break-word;}
+  .pill{display:inline-block;background:#EEF6FF;color:var(--sky-dk);font-weight:800;font-size:12px;padding:3px 9px;border-radius:999px;margin-left:6px;}
+  .optional{background:#F4F1FB;color:var(--grape);}
+
+  .qcard{display:flex;align-items:center;gap:14px;padding:16px 16px;margin-top:12px;cursor:pointer;transition:transform .08s;}
+  .qcard:active{transform:translateY(2px);}
+  .qnum{width:46px;height:46px;border-radius:14px;flex:none;display:grid;place-items:center;font-family:'Baloo 2';font-weight:800;font-size:20px;color:#fff;
+    background:linear-gradient(160deg,var(--sky),#5aa9f6);box-shadow:0 4px 0 var(--sky-dk);}
+  .qcard:nth-child(3n) .qnum{background:linear-gradient(160deg,var(--grape),#9d86ff);box-shadow:0 4px 0 #5b3fd6;}
+  .qcard:nth-child(3n+1) .qnum{background:linear-gradient(160deg,var(--grass),#5ad982);box-shadow:0 4px 0 var(--grass-dk);}
+  .qcard .qs{font-weight:700;color:var(--muted);font-size:14px;line-height:1.35;}
+  .qcard .qt{font-family:'Baloo 2';font-weight:700;font-size:15px;}
+  .chev{color:var(--muted);font-size:22px;margin-left:auto;}
+
+  .progresswrap{display:flex;align-items:center;gap:12px;margin:6px 2px 14px;}
+  .bar{flex:1;height:14px;background:#ECE5D6;border-radius:999px;overflow:hidden;border:1px solid var(--line);}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--grass),#67e08e);border-radius:999px;transition:width .4s cubic-bezier(.2,.8,.2,1);}
+  .hearts{font-weight:800;color:var(--muted);font-size:14px;}
+
+  .qbody{padding:18px 18px 16px;}
+  .label{font-family:'Baloo 2';font-weight:800;color:var(--grape);font-size:13px;text-transform:uppercase;letter-spacing:.06em;}
+  .qtext{font-size:16px;line-height:1.5;font-weight:600;margin-top:6px;}
+  .disclose{margin-top:12px;border-top:2px dashed var(--line);padding-top:11px;}
+  .disclose summary{cursor:pointer;font-family:'Baloo 2';font-weight:800;color:var(--sky-dk);list-style:none;font-size:15px;display:flex;align-items:center;gap:8px;}
+  .disclose summary::-webkit-details-marker{display:none;}
+  .disclose.ms summary{color:var(--gold-dk);}
+  .msbox{margin-top:10px;background:#FFFCEF;border:1.5px solid #F1E4B8;border-radius:12px;padding:12px 14px;font-weight:600;font-size:14.5px;line-height:1.55;}
+  .pageviewer{margin-top:12px;border-radius:14px;overflow:hidden;border:2px solid var(--line);background:#fff;}
+  .pagenav{display:flex;align-items:center;justify-content:center;gap:14px;padding:8px;background:#FAF7EF;border-bottom:2px solid var(--line);font-weight:800;font-family:'Baloo 2';}
+  .pagenav button{border:none;background:#fff;border:2px solid var(--line);border-radius:10px;width:36px;height:36px;font-size:16px;cursor:pointer;box-shadow:0 3px 0 var(--line);}
+  .pagenav button:active{transform:translateY(2px);box-shadow:none;}
+  .pagecanvas{display:block;margin:0 auto;}
+
+  .sol{padding:15px 18px 8px;margin-top:14px;}
+  .sol .solhead{font-family:'Baloo 2';font-weight:800;font-size:17px;display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .solitem{display:flex;gap:11px;padding:13px 0;border-bottom:1px dashed var(--line);}
+  .solitem:last-child{border-bottom:none;}
+  .solitem .n{width:26px;height:26px;border-radius:8px;background:var(--grass);color:#fff;display:grid;place-items:center;font-family:'Baloo 2';font-weight:800;font-size:13px;flex:none;}
+  .solitem .dec{font-weight:800;font-size:14.5px;line-height:1.4;}
+  .solwork{margin-top:8px;background:#FAF7EF;border:1.5px solid var(--line);border-radius:12px;padding:10px 13px;font-weight:600;font-size:14.5px;line-height:1.55;overflow-x:auto;}
+  .solwork.math{background:#F3FAFF;border-color:#D6E9FB;}
+
+  .stepprompt{font-family:'Baloo 2';font-weight:800;font-size:20px;margin:18px 2px 4px;line-height:1.2;}
+  .stephint{color:var(--muted);font-weight:700;font-size:14px;margin:0 2px 12px;}
+  .options{display:flex;flex-direction:column;gap:11px;}
+  .opt{display:flex;align-items:flex-start;gap:13px;text-align:left;width:100%;cursor:pointer;background:#fff;border:2px solid var(--line);border-radius:16px;padding:15px;
+    box-shadow:0 4px 0 var(--line);transition:transform .06s, box-shadow .06s, border-color .12s, background .12s;font-weight:700;font-size:15.5px;color:var(--ink);line-height:1.4;}
+  .opt:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line);}
+  .opt .key{width:30px;height:30px;border-radius:9px;border:2px solid var(--line);display:grid;place-items:center;font-family:'Baloo 2';font-weight:800;flex:none;color:var(--muted);background:#FAF7EF;margin-top:1px;}
+  .opt.sel{border-color:var(--sky);background:#F2F8FF;box-shadow:0 4px 0 var(--sky);}
+  .opt.sel .key{border-color:var(--sky);color:var(--sky-dk);background:#fff;}
+  .opt.right{border-color:var(--grass);background:#F1FBF3;box-shadow:0 4px 0 var(--grass-dk);}
+  .opt.right .key{background:var(--grass);color:#fff;border-color:var(--grass);}
+  .opt.wrong{border-color:var(--berry);background:#FFF1F3;box-shadow:0 4px 0 var(--berry-dk);}
+  .opt.wrong .key{background:var(--berry);color:#fff;border-color:var(--berry);}
+  .opt.dim{opacity:.6;}
+  .opt:disabled{cursor:default;}
+  .optwrap{width:100%;}
+  .optwhy{font-size:13px;color:var(--berry-dk);font-weight:700;margin-top:8px;background:#FFF1F3;border:1px solid #FAD0D8;border-radius:10px;padding:7px 10px;line-height:1.45;}
+  .shake{animation:shake .42s;}
+  @keyframes shake{10%,90%{transform:translateX(-1px);}20%,80%{transform:translateX(3px);}30%,50%,70%{transform:translateX(-6px);}40%,60%{transform:translateX(6px);}}
+
+  .feedback{margin-top:16px;border-radius:16px;padding:16px;font-weight:700;animation:pop .25s ease-out;}
+  @keyframes pop{from{transform:scale(.96);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .feedback.good{background:#E9FBEF;border:2px solid #B6ECC6;}
+  .feedback .ftitle{font-family:'Baloo 2';font-weight:800;font-size:18px;display:flex;align-items:center;gap:8px;color:var(--grass-dk);}
+  .feedback .fbody{margin-top:7px;font-size:15px;line-height:1.5;color:var(--ink);}
+  .fwork{margin-top:11px;background:#fff;border:1.5px solid #B6ECC6;border-radius:12px;padding:10px 13px;font-weight:600;overflow-x:auto;}
+  .fwork .flbl{font-family:'Baloo 2';font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--grass-dk);margin-bottom:5px;}
+  .actionrow{display:flex;gap:10px;margin:14px 0;align-items:center;}
+  .linklike{background:none;border:none;color:var(--sky-dk);font-family:'Baloo 2';font-weight:800;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:6px 0;}
+
+  .overlay{position:fixed;inset:0;z-index:60;background:rgba(39,49,58,.45);display:flex;align-items:flex-end;justify-content:center;animation:fade .2s;}
+  @keyframes fade{from{opacity:0;}to{opacity:1;}}
+  .sheet{width:100%;max-width:760px;background:var(--bg);border-radius:24px 24px 0 0;max-height:88vh;display:flex;flex-direction:column;animation:slideup .28s cubic-bezier(.2,.8,.2,1);}
+  @keyframes slideup{from{transform:translateY(100%);}to{transform:translateY(0);}}
+  .sheet .shead{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:2px solid var(--line);}
+  .sheet .shead h3{font-size:19px;}
+  .chat{padding:16px 16px 4px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:12px;}
+  .msg{max-width:88%;padding:12px 15px;border-radius:16px;font-weight:600;font-size:15px;line-height:1.5;}
+  .msg.bot{background:#fff;border:2px solid var(--line);border-bottom-left-radius:5px;align-self:flex-start;}
+  .msg.me{background:var(--sky);color:#fff;border-bottom-right-radius:5px;align-self:flex-end;}
+  .typing{display:flex;gap:5px;padding:6px 2px;}
+  .typing i{width:8px;height:8px;background:var(--muted);border-radius:50%;animation:bounce 1s infinite;}
+  .typing i:nth-child(2){animation-delay:.15s;}.typing i:nth-child(3){animation-delay:.3s;}
+  @keyframes bounce{0%,80%,100%{transform:translateY(0);opacity:.5;}40%{transform:translateY(-6px);opacity:1;}}
+  .composer{display:flex;gap:8px;padding:12px 14px;border-top:2px solid var(--line);background:var(--bg);}
+  .composer input{flex:1;border:2px solid var(--line);border-radius:14px;padding:13px 14px;font-family:'Nunito';font-weight:700;font-size:15px;outline:none;}
+  .composer input:focus{border-color:var(--sky);}
+  .composer button{border:none;background:var(--sky);color:#fff;border-radius:14px;width:50px;font-size:20px;cursor:pointer;box-shadow:0 4px 0 var(--sky-dk);}
+  .composer button:active{transform:translateY(3px);box-shadow:0 1px 0 var(--sky-dk);}
+  .quickchips{display:flex;gap:8px;flex-wrap:wrap;padding:0 16px 12px;}
+  .chip{background:#fff;border:2px solid var(--line);border-radius:999px;padding:8px 13px;font-weight:800;font-size:13px;color:var(--sky-dk);cursor:pointer;}
+
+  .complete{text-align:center;padding:34px 22px;}
+  .complete .big{font-size:60px;animation:pop .4s;}
+  .complete h2{font-size:26px;margin-top:6px;}
+  .complete p{color:var(--muted);font-weight:700;margin-top:6px;}
+
+  .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px 20px;text-align:center;}
+  .spinner{width:54px;height:54px;border-radius:50%;border:6px solid #E8E1D2;border-top-color:var(--grass);animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading .lmsg{margin-top:20px;font-family:'Baloo 2';font-weight:800;font-size:17px;color:var(--ink);}
+  .loading .lsub{color:var(--muted);font-weight:700;margin-top:6px;font-size:14px;}
+  .errbox{background:#FFF0F3;border:2px solid #FAC7D1;color:var(--berry-dk);border-radius:14px;padding:14px 16px;font-weight:700;margin-top:14px;white-space:pre-wrap;font-size:14px;}
+  .note{color:var(--muted);font-weight:700;font-size:13px;line-height:1.5;margin-top:14px;}
+  .fade-in{animation:fadein .4s ease-out;}
+  @keyframes fadein{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:50;}
+  .confetti i{position:absolute;top:-12px;width:10px;height:14px;opacity:.9;animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.2;}}
+  .katex{font-size:1.04em;}
+  .katex-display{margin:.2em 0;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="env,react">
+const { useState, useRef, useEffect, useCallback } = React;
+
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+/* Model split: cheap model for extraction/planning/options, smarter model for the tutor chat.
+   Verify these IDs at https://platform.claude.com/docs/en/about-claude/pricing */
+const STEP_MODEL = "claude-haiku-4-5-20251001";
+const TUTOR_MODEL = "claude-sonnet-4-6";
+
+/* --------------------------- auth + transport --------------------------- */
+let AUTH_TOKEN = localStorage.getItem("stepwise_token") || null;
+function setToken(t) { AUTH_TOKEN = t; if (t) localStorage.setItem("stepwise_token", t); else localStorage.removeItem("stepwise_token"); }
+function logout() { setToken(null); }
+
+async function api(path, opts) {
+  opts = opts || {};
+  const headers = Object.assign({ "Content-Type": "application/json" }, opts.headers || {});
+  if (AUTH_TOKEN) headers["Authorization"] = "Bearer " + AUTH_TOKEN;
+  return fetch(path, Object.assign({}, opts, { headers }));
+}
+async function doAuth(kind, email, password) {
+  const res = await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: kind, email, password }) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || ("Couldn't " + kind + " (" + res.status + ")"));
+  setToken(data.token);
+  return data;
+}
+
+async function callClaude(messages, opts) {
+  opts = opts || {};
+  const res = await api("/api/claude", { method: "POST", body: JSON.stringify({ model: opts.model || STEP_MODEL, max_tokens: opts.max_tokens || 1024, system: opts.system, messages }) });
+  if (!res.ok) { const t = await res.text().catch(() => ""); throw new Error("Model error " + res.status + (t ? (" – " + t.slice(0, 160)) : "")); }
+  const data = await res.json();
+  return (data.content || []).filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
+}
+
+/* per-user history blob lives on the server, keyed to the account */
+async function loadStore() {
+  try { const r = await api("/api/data"); if (r.ok) { const d = await r.json(); return { history: d.history || [], reviews: d.reviews || [], xp: d.xp || 0 }; } } catch (e) {}
+  return { history: [], reviews: [], xp: 0 };
+}
+let saveTimer = null;
+function persistStore(d) { clearTimeout(saveTimer); saveTimer = setTimeout(() => { api("/api/data", { method: "PUT", body: JSON.stringify(d) }).catch(() => {}); }, 400); }
+
+/* ------------------------------- helpers -------------------------------- */
+function extractJSON(text) {
+  if (!text) throw new Error("Empty response from the model.");
+  let t = text.trim().replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+  const fo = t.indexOf("{"), fa = t.indexOf("[");
+  let start = fa !== -1 && (fo === -1 || fa < fo) ? fa : fo;
+  if (start === -1) throw new Error("Could not find JSON in the response.");
+  const end = Math.max(t.lastIndexOf("}"), t.lastIndexOf("]"));
+  const slice = t.slice(start, end + 1);
+  try { return JSON.parse(slice); }
+  catch (e) { try { return JSON.parse(slice.replace(/\\([a-zA-Z])/g, "\\\\$1")); } catch (e2) { throw new Error("Couldn't parse the model's response."); } }
+}
+function fileToBase64(file) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = () => rej(new Error("Failed to read file.")); r.readAsDataURL(file); });
+}
+async function loadPdfDoc(file) { const buf = await file.arrayBuffer(); return pdfjsLib.getDocument({ data: new Uint8Array(buf.slice(0)) }).promise; }
+async function extractPdfText(doc) {
+  const parts = [];
+  for (let p = 1; p <= doc.numPages; p++) {
+    const page = await doc.getPage(p);
+    const tc = await page.getTextContent();
+    parts.push("[PAGE " + p + "]\n" + tc.items.map((i) => i.str).join(" "));
+  }
+  return parts.join("\n\n");
+}
+function docBlock(b64) { return { type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } }; }
+const KEYS = ["A", "B", "C", "D", "E"];
+function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/* ------------------------- AI: one-pass extraction ----------------------- */
+/* COST FIX: read PDF text in the browser (free) and structure it in ONE call.
+   We never re-send PDF images to the model per question. */
+const EXTRACT_FIELDS =
+  'Return a JSON array of every numbered question: [{"number","summary","questionText","markScheme","startPage"}].\n' +
+  '- "number": the question number as a string.\n' +
+  '- "summary": one short sentence on what it asks.\n' +
+  '- "questionText": the full question incl. all sub-parts, cleaned up. Wrap inline maths in \\( \\) and display maths in \\[ \\]. If it relies on a figure/graph/table, add "[See the figure on the original paper]".\n' +
+  '- "markScheme": the marking method + answers for THAT question as a concise numbered method (from the mark scheme if present, else the standard correct method). Wrap maths in \\( \\).\n' +
+  '- "startPage": the [PAGE n] number where the question begins.\n' +
+  "IMPORTANT: valid JSON only — escape every LaTeX backslash as \\\\. No markdown fences.";
+
+async function extractPaperFromText(paperText, msText) {
+  const system = "You convert raw exam-paper text into clean, structured questions. Output strict JSON.";
+  const prompt =
+    "RAW EXAM PAPER TEXT (with [PAGE n] markers):\n" + paperText + "\n\n" +
+    "RAW MARK SCHEME TEXT" + (msText ? ":\n" + msText : " (none provided — use the standard correct method).") + "\n\n" + EXTRACT_FIELDS;
+  const text = await callClaude([{ role: "user", content: prompt }], { system, model: STEP_MODEL, max_tokens: 8000 });
+  const arr = extractJSON(text);
+  const list = Array.isArray(arr) ? arr : (arr.questions || []);
+  if (!list.length) throw new Error("Couldn't extract questions from this PDF.");
+  return list;
+}
+async function extractPaperFromPdf(paperB64, msB64) { // fallback for scanned PDFs with no text layer
+  const content = [{ type: "text", text: "This is the EXAM PAPER:" }, docBlock(paperB64)];
+  if (msB64) { content.push({ type: "text", text: "This is the MARK SCHEME:" }); content.push(docBlock(msB64)); }
+  content.push({ type: "text", text: "Pages are images; infer page numbers in order starting at 1. " + EXTRACT_FIELDS });
+  const text = await callClaude([{ role: "user", content }], { system: "You extract structured questions from exam PDFs. Output strict JSON.", model: STEP_MODEL, max_tokens: 8000 });
+  const arr = extractJSON(text);
+  const list = Array.isArray(arr) ? arr : (arr.questions || []);
+  if (!list.length) throw new Error("Couldn't read this scanned PDF.");
+  return list;
+}
+
+async function planQuestion(q) {
+  const system =
+    "You are Stepwise, a coach that teaches A-Level EXAM TECHNIQUE. You break a question's solution into an ordered list of DISTINCT, non-overlapping steps — each a single atomic decision a student makes. Adjacent steps must never duplicate, anticipate, or reveal each other.";
+  const prompt =
+    "QUESTION:\n" + q.questionText + "\n\nMARK SCHEME / METHOD:\n" + q.markScheme + "\n\n" +
+    'Decompose the solution into 3-7 ordered steps. Return JSON: {"steps":[{"stepPrompt","working","workingType"}, ...]}\n' +
+    '- "stepPrompt": a short question naming the decision for THIS step only.\n' +
+    '- "workingType": "math" for quantitative working, "text" for written/essay steps.\n' +
+    '- "working": the EXACT increment this step adds — and nothing a later step is responsible for.\n' +
+    "   * math: valid LaTeX with NO delimiters; separate lines with \\\\.\n" +
+    "   * text: the specific full sentence(s) for THIS step only (e.g. a single Economics KAA point).\n" +
+    "CRITICAL — DO NOT LET THE WORKING RUN AHEAD: reading the \"working\" fields in order must rebuild the full solution with NO step repeating, anticipating, or giving away another step's result. " +
+    "Example (economics): if step 1 is \"identify the policy change\", its working is ONLY \"Policy: income tax is cut.\" It must NOT add \"so consumption rises\", because that is a LATER step's job.\n" +
+    "IMPORTANT: valid JSON only — escape every LaTeX backslash as \\\\. No markdown fences.";
+  const text = await callClaude([{ role: "user", content: prompt }], { system, model: STEP_MODEL, max_tokens: 1500 });
+  const obj = extractJSON(text);
+  const steps = Array.isArray(obj) ? obj : obj.steps;
+  if (!Array.isArray(steps) || !steps.length) throw new Error("Couldn't break this question into steps.");
+  steps.forEach((s) => { if (!s.workingType) s.workingType = "text"; if (s.working == null) s.working = ""; });
+  return steps;
+}
+
+async function generateStepDetail(q, plan, i) {
+  const system =
+    "You are Stepwise, a Duolingo-style coach. You write the multiple-choice options for ONE step of an already-planned solution. Make distractors tempting but clearly wrong for THIS step. NEVER reveal, state, or hint at the content or answer of any later step.";
+  const planList = plan.map((s, k) => (k + 1) + ". " + s.stepPrompt).join("\n");
+  const cur = plan[i];
+  const prompt =
+    "QUESTION:\n" + q.questionText + "\n\nMARK SCHEME / METHOD:\n" + q.markScheme + "\n\n" +
+    "FULL ORDERED PLAN (for your awareness only — do NOT leak later steps):\n" + planList + "\n\n" +
+    'WRITE OPTIONS FOR STEP ' + (i + 1) + ': "' + cur.stepPrompt + '"\n' +
+    "This step's correct outcome (its working) is: " + cur.working + "\n\n" +
+    "Return JSON with:\n" +
+    '- "options": 3-4 objects {"text","correct":bool,"whyWrong"}. EXACTLY ONE correct — the action that achieves THIS step\'s outcome, phrased as a decision (~6-20 words). Distractors are plausible wrong moves for THIS step: real mistakes, or actions that are premature / belong to a different step. "whyWrong" = one short sentence; for the correct option set "whyWrong" to "".\n' +
+    '- "explanation": shown after a correct answer — why this move is right and its immediate result for THIS step ONLY. Do NOT mention or reveal any later step. 1-3 sentences. Wrap maths in \\( \\).\n' +
+    "IMPORTANT: valid JSON only — escape every LaTeX backslash as \\\\. No markdown fences.";
+  const text = await callClaude([{ role: "user", content: prompt }], { system, model: STEP_MODEL, max_tokens: 1024 });
+  const d = extractJSON(text);
+  if (!Array.isArray(d.options) || d.options.length < 2) throw new Error("Bad step options from model.");
+  const corrects = d.options.filter((o) => o.correct);
+  if (corrects.length !== 1) d.options.forEach((o, k) => (o.correct = k === 0));
+  d.options.forEach((o) => { if (o.whyWrong == null) o.whyWrong = ""; });
+  return { options: shuffle(d.options), explanation: d.explanation || "" };
+}
+
+function buildStep(plan, i, detail) {
+  return { stepPrompt: plan[i].stepPrompt, working: plan[i].working, workingType: plan[i].workingType, options: detail.options, explanation: detail.explanation, isFinalStep: i === plan.length - 1 };
+}
+
+/* =============================== COMPONENTS ============================== */
+const TEX_DELIMS = [{ left: "$$", right: "$$", display: true }, { left: "\\[", right: "\\]", display: true }, { left: "\\(", right: "\\)", display: false }];
+function Tex({ text, className, style }) {
+  const ref = useRef(null);
+  useEffect(() => { if (ref.current && window.renderMathInElement) { try { renderMathInElement(ref.current, { delimiters: TEX_DELIMS, throwOnError: false }); } catch (e) {} } }, [text]);
+  return <div ref={ref} className={className} style={{ whiteSpace: "pre-wrap", ...(style || {}) }}>{text}</div>;
+}
+function MathBlock({ latex }) {
+  const ref = useRef(null);
+  useEffect(() => { if (ref.current && window.katex) { let tex = latex || ""; if (tex.includes("\\\\")) tex = "\\begin{gathered}" + tex + "\\end{gathered}"; try { katex.render(tex, ref.current, { displayMode: true, throwOnError: false }); } catch (e) { ref.current.textContent = latex; } } }, [latex]);
+  return <div ref={ref} />;
+}
+function Working({ working, workingType }) {
+  if (!working) return null;
+  return <div className={"solwork " + (workingType === "math" ? "math" : "")}>{workingType === "math" ? <MathBlock latex={working} /> : <Tex text={working} />}</div>;
+}
+function Loading({ msgs, sub }) {
+  const [i, setI] = useState(0);
+  useEffect(() => { const t = setInterval(() => setI((x) => (x + 1) % msgs.length), 1900); return () => clearInterval(t); }, [msgs.length]);
+  return (<div className="loading"><div className="spinner" /><div className="lmsg">{msgs[i]}</div>{sub && <div className="lsub">{sub}</div>}</div>);
+}
+function Confetti() {
+  const colors = ["#3AC569", "#FFC23C", "#2B8AF0", "#FF5470", "#7A5CFF"];
+  return (<div className="confetti">{Array.from({ length: 80 }).map((_, i) => (<i key={i} style={{ left: Math.random() * 100 + "%", background: colors[i % colors.length], animationDuration: (1.6 + Math.random() * 1.8) + "s", animationDelay: (Math.random() * 0.5) + "s", borderRadius: Math.random() > .5 ? "2px" : "50%" }} />))}</div>);
+}
+function PageViewer({ doc, numPages, start }) {
+  const [page, setPage] = useState(start || 1);
+  const canvasRef = useRef(null); const wrapRef = useRef(null);
+  const [busy, setBusy] = useState(true);
+  useEffect(() => { setPage(start || 1); }, [start]);
+  useEffect(() => {
+    let task = null, cancelled = false;
+    (async () => {
+      if (!doc || !canvasRef.current) return;
+      setBusy(true);
+      try {
+        const p = await doc.getPage(page);
+        const base = p.getViewport({ scale: 1 });
+        const cw = Math.min(700, (wrapRef.current ? wrapRef.current.clientWidth : 600) || 600);
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const vp = p.getViewport({ scale: (cw / base.width) * dpr });
+        const canvas = canvasRef.current;
+        canvas.width = vp.width; canvas.height = vp.height; canvas.style.width = cw + "px"; canvas.style.height = (vp.height / dpr) + "px";
+        task = p.render({ canvasContext: canvas.getContext("2d"), viewport: vp });
+        await task.promise;
+      } catch (e) { if (e && e.name !== "RenderingCancelledException") console.warn(e); }
+      if (!cancelled) setBusy(false);
+    })();
+    return () => { cancelled = true; if (task) { try { task.cancel(); } catch (e) {} } };
+  }, [doc, page]);
+  return (
+    <div className="pageviewer" ref={wrapRef}>
+      <div className="pagenav">
+        <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>‹</button>
+        <span>Page {page} / {numPages}</span>
+        <button onClick={() => setPage((p) => Math.min(numPages, p + 1))} disabled={page >= numPages}>›</button>
+      </div>
+      <canvas ref={canvasRef} className="pagecanvas" style={{ opacity: busy ? 0.4 : 1, transition: "opacity .2s" }} />
+    </div>
+  );
+}
+
+function ExplainSheet({ q, step, onClose }) {
+  const [msgs, setMsgs] = useState([{ role: "bot", text: "Ask me anything about this step. You can point to the options by letter — e.g. \"why isn't B right?\" or \"explain how option A works\"." }]);
+  const [input, setInput] = useState("");
+  const [thinking, setThinking] = useState(false);
+  const scroller = useRef(null);
+  const optionsBlock = step.options.map((o, i) => KEYS[i] + ") " + o.text + (o.correct ? "  [CORRECT]" : "")).join("\n");
+  const sys =
+    "You are a warm, sharp A-Level tutor helping a student understand ONE step of a past-paper question. " +
+    "Be encouraging and concise (under 140 words). Use \\( \\) for inline maths and \\[ \\] for display maths so it renders. " +
+    "You can see the options the student is looking at, labelled by letter — refer to them by letter when useful. Don't dump the whole solution.\n\n" +
+    "QUESTION:\n" + q.questionText + "\n\nTHE STEP PROMPT: " + step.stepPrompt + "\n\nOPTIONS:\n" + optionsBlock + "\n\nWHY THE CORRECT ONE IS RIGHT: " + (step.explanation || "");
+  const send = useCallback(async (text) => {
+    const history = [...msgs, { role: "me", text }];
+    setMsgs(history); setInput(""); setThinking(true);
+    try {
+      const apiMsgs = history.map((m) => ({ role: m.role === "me" ? "user" : "assistant", content: m.text }));
+      const reply = await callClaude(apiMsgs, { system: sys, model: TUTOR_MODEL, max_tokens: 700 });
+      setMsgs((m) => [...m, { role: "bot", text: reply || "…" }]);
+    } catch (e) { setMsgs((m) => [...m, { role: "bot", text: "Sorry — I hit an error reaching the tutor. Try again." }]); }
+    setThinking(false);
+  }, [msgs, sys]);
+  useEffect(() => { if (scroller.current) scroller.current.scrollTop = scroller.current.scrollHeight; }, [msgs, thinking]);
+  return (
+    <div className="overlay" onClick={onClose}>
+      <div className="sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="shead"><span style={{ fontSize: 22 }}>🧑‍🏫</span><h3>Ask the tutor</h3><div className="spacer" /><button className="iconbtn" onClick={onClose}>✕</button></div>
+        <div className="chat" ref={scroller}>
+          {msgs.map((m, i) => (m.role === "bot" ? <div key={i} className="msg bot"><Tex text={m.text} /></div> : <div key={i} className="msg me">{m.text}</div>))}
+          {thinking && (<div className="msg bot"><div className="typing"><i /><i /><i /></div></div>)}
+        </div>
+        {!thinking && (<div className="quickchips">{["Explain this step simply", "Why are the other options wrong?", "What's the rule behind this?"].map((c) => (<button key={c} className="chip" onClick={() => send(c)}>{c}</button>))}</div>)}
+        <div className="composer">
+          <input value={input} placeholder="Ask anything about this step…" onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && input.trim() && !thinking) send(input.trim()); }} />
+          <button onClick={() => input.trim() && !thinking && send(input.trim())}>➤</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReviewSession({ items, onClearReview, onExit }) {
+  const [queue] = useState(items);
+  const [idx, setIdx] = useState(0);
+  const [opts, setOpts] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [wrongIdx, setWrongIdx] = useState([]);
+  const [shakeIdx, setShakeIdx] = useState(null);
+  const [phase, setPhase] = useState("answering");
+  const [explainOpen, setExplainOpen] = useState(false);
+  const [mastered, setMastered] = useState(0);
+  const item = queue[idx];
+  useEffect(() => { if (item) { setOpts(shuffle(item.options)); setSelected(null); setWrongIdx([]); setPhase("answering"); } }, [idx]);
+  function check() {
+    if (selected == null) return;
+    const o = opts[selected];
+    if (o.correct) { setPhase("correct"); setMastered((m) => m + 1); onClearReview(item.id); }
+    else { setWrongIdx((w) => [...w, selected]); setShakeIdx(selected); setTimeout(() => setShakeIdx(null), 450); setSelected(null); }
+  }
+  if (!item) {
+    return (
+      <div className="fade-in">
+        <div className="progresswrap"><button className="iconbtn" onClick={onExit}>✕</button><div className="bar"><i style={{ width: "100%" }} /></div><div className="hearts">review</div></div>
+        <div className="card complete">
+          <div className="big">{queue.length === 0 ? "👍" : "🧠"}</div>
+          <h2>{queue.length === 0 ? "Nothing to review!" : "Review complete"}</h2>
+          <p>{queue.length === 0 ? "No past mistakes saved yet. Work through questions and any slips land here for active recall." : ("You recalled " + mastered + " of " + queue.length + " — they're cleared from your list.")}</p>
+          <div style={{ height: 16 }} /><button className="btn" onClick={onExit}>Back to menu →</button>
+        </div>
+      </div>
+    );
+  }
+  const pseudoStep = { stepPrompt: item.stepPrompt, options: opts, explanation: item.explanation };
+  return (
+    <div className="fade-in">
+      <div className="progresswrap"><button className="iconbtn" onClick={onExit}>✕</button><div className="bar"><i style={{ width: (idx / queue.length * 100) + "%" }} /></div><div className="hearts">{idx + 1} / {queue.length}</div></div>
+      <div className="card qbody">
+        <div className="label" style={{ color: "var(--berry-dk)" }}>Recall · {item.paperName ? (item.paperName.replace(/\.pdf$/i, "") + " · ") : ""}Q{item.qnum}</div>
+        <div className="stephint" style={{ margin: "5px 0 0" }}>You slipped on this step before — try it again from memory.</div>
+        <details className="disclose"><summary>📄 Show the question for context</summary><div className="msbox" style={{ background: "#F7F9FC", borderColor: "var(--line)" }}><Tex text={item.questionText} /></div></details>
+      </div>
+      <div style={{ marginTop: 16 }}>
+        <Tex className="stepprompt" text={item.stepPrompt} />
+        <div className="stephint">Pick the correct move, then check.</div>
+        <div className="options">
+          {opts.map((o, i) => {
+            let cls = "opt";
+            if (phase === "correct" && o.correct) cls += " right";
+            else if (wrongIdx.includes(i)) cls += " wrong dim";
+            else if (selected === i) cls += " sel";
+            else if (phase === "correct") cls += " dim";
+            if (shakeIdx === i) cls += " shake";
+            const disabled = phase === "correct" || wrongIdx.includes(i);
+            const showWhy = phase === "correct" && !o.correct && o.whyWrong;
+            return (<button key={i} className={cls} disabled={disabled} onClick={() => { if (!disabled) setSelected(i); }}><span className="key">{KEYS[i]}</span><span className="optwrap"><Tex text={o.text} />{showWhy ? <div className="optwhy">✗ {o.whyWrong}</div> : null}</span></button>);
+          })}
+        </div>
+        {phase === "correct" && (
+          <div className="feedback good">
+            <div className="ftitle">✅ Mastered — cleared from your review list</div>
+            <Tex className="fbody" text={item.explanation} />
+            {item.working ? (<div className="fwork"><div className="flbl">Working</div>{item.workingType === "math" ? <MathBlock latex={item.working} /> : <Tex text={item.working} />}</div>) : null}
+          </div>
+        )}
+        <div className="actionrow"><button className="linklike" onClick={() => setExplainOpen(true)}>💬 Ask the tutor</button></div>
+        {phase === "correct" ? <button className="btn" onClick={() => setIdx((i) => i + 1)}>{idx + 1 >= queue.length ? "Finish review 🎯" : "Next →"}</button> : <button className="btn" disabled={selected == null} onClick={check}>Check answer</button>}
+      </div>
+      {explainOpen && <ExplainSheet q={{ questionText: item.questionText }} step={pseudoStep} onClose={() => setExplainOpen(false)} />}
+    </div>
+  );
+}
+
+function Solver({ paper, hasMs, question, onExit, onAward, onAddReview, onComplete }) {
+  const [prep, setPrep] = useState(null);
+  const [plan, setPlan] = useState(null);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [loadingPrep, setLoadingPrep] = useState(true);
+  const [err, setErr] = useState("");
+  const [step, setStep] = useState(null);
+  const [stepLoading, setStepLoading] = useState(false);
+  const [completed, setCompleted] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [phase, setPhase] = useState("answering");
+  const [wrongIdx, setWrongIdx] = useState([]);
+  const [shakeIdx, setShakeIdx] = useState(null);
+  const [firstTry, setFirstTry] = useState(true);
+  const [explain, setExplain] = useState(false);
+  const [sessionMistakes, setSessionMistakes] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        setErr(""); setLoadingPrep(true);
+        const p = { questionText: question.questionText, markScheme: question.markScheme || "", startPage: question.startPage || 1 };
+        setPrep(p);
+        const pl = await planQuestion(p);
+        if (!alive) return;
+        setPlan(pl); setLoadingPrep(false); setStepLoading(true);
+        const detail = await generateStepDetail(p, pl, 0);
+        if (!alive) return;
+        setStep(buildStep(pl, 0, detail)); setStepLoading(false);
+      } catch (e) { if (alive) { setErr(e.message || String(e)); setLoadingPrep(false); setStepLoading(false); } }
+    })();
+    return () => { alive = false; };
+  }, [question.number]);
+
+  function check() {
+    if (selected == null) return;
+    const opt = step.options[selected];
+    if (opt.correct) {
+      onAward(firstTry ? 10 : 4);
+      setCompleted((c) => [...c, { decision: opt.text, working: step.working, workingType: step.workingType, explanation: step.explanation }]);
+      if (wrongIdx.length > 0 && onAddReview) {
+        onAddReview({
+          id: paper.name + "|" + question.number + "|" + Date.now() + "|" + Math.random().toString(36).slice(2, 7),
+          paperName: paper.name, qnum: question.number, questionText: prep.questionText, stepPrompt: step.stepPrompt,
+          options: step.options.map((o) => ({ text: o.text, correct: !!o.correct, whyWrong: o.whyWrong || "" })),
+          explanation: step.explanation, working: step.working, workingType: step.workingType,
+          wrongPicks: wrongIdx.map((i) => step.options[i].text), date: Date.now(),
+        });
+        setSessionMistakes((m) => m + 1);
+      }
+      setPhase("correct");
+    } else {
+      setWrongIdx((w) => [...w, selected]); setShakeIdx(selected); setFirstTry(false); setTimeout(() => setShakeIdx(null), 450); setSelected(null);
+    }
+  }
+  async function next() {
+    if (step.isFinalStep) {
+      setPhase("complete");
+      if (onComplete) onComplete({ paperName: paper.name, qnum: question.number, summary: question.summary, stepsTotal: completed.length, mistakes: sessionMistakes, date: Date.now() });
+      return;
+    }
+    const ni = stepIndex + 1; setStepIndex(ni);
+    setSelected(null); setWrongIdx([]); setFirstTry(true); setPhase("answering"); setStep(null); setStepLoading(true);
+    try { const detail = await generateStepDetail(prep, plan, ni); setStep(buildStep(plan, ni, detail)); } catch (e) { setErr(e.message || String(e)); }
+    setStepLoading(false);
+  }
+
+  if (err) return (<div className="card qbody fade-in"><div className="errbox">Something went wrong:{"\n"}{err}</div><div style={{ height: 14 }} /><button className="btn ghost" onClick={onExit}>← Back to questions</button></div>);
+  if (loadingPrep) return (<div className="card fade-in"><Loading msgs={["Planning the steps…", "Mapping out distinct moves…"]} sub="Breaking this question into clean, non-overlapping steps." /></div>);
+
+  const total = plan ? plan.length : 0;
+  const progress = phase === "complete" ? 100 : (total ? Math.max(6, Math.round((completed.length / total) * 100)) : 8);
+
+  return (
+    <div className="fade-in">
+      <div className="progresswrap"><button className="iconbtn" onClick={onExit}>✕</button><div className="bar"><i style={{ width: progress + "%" }} /></div><div className="hearts">{phase === "complete" ? total : Math.min(stepIndex + 1, total)} / {total} steps</div></div>
+
+      <div className="card qbody">
+        <div className="label">Question {question.number}</div>
+        <Tex className="qtext" text={prep.questionText} />
+        <details className="disclose"><summary>🖼️ View the original paper (diagrams &amp; figures)</summary>{paper.doc && <PageViewer doc={paper.doc} numPages={paper.numPages} start={prep.startPage} />}</details>
+        <details className="disclose ms"><summary>📋 {hasMs ? "View the mark scheme for this question" : "View the method for this question"}</summary><div className="msbox"><Tex text={prep.markScheme || "Not available."} /></div></details>
+      </div>
+
+      {completed.length > 0 && (
+        <div className="card sol fade-in">
+          <div className="solhead">📝 Your solution so far</div>
+          {completed.map((c, i) => (<div className="solitem" key={i}><span className="n">{i + 1}</span><div style={{ flex: 1, minWidth: 0 }}><div className="dec">{c.decision}</div><Working working={c.working} workingType={c.workingType} /></div></div>))}
+        </div>
+      )}
+
+      {phase === "complete" && (
+        <>
+          <Confetti />
+          <div className="card complete fade-in" style={{ marginTop: 14 }}>
+            <div className="big">🎉</div><h2>Question solved!</h2>
+            <p>The full working is in your solution log above. That's the technique you'll reuse on the real thing.</p>
+            <div style={{ height: 16 }} /><button className="btn" onClick={onExit}>Pick another question →</button>
+          </div>
+        </>
+      )}
+
+      {phase !== "complete" && (
+        <div style={{ marginTop: 16 }}>
+          {stepLoading || !step ? (<div className="card"><Loading msgs={["Building your next step…", "Thinking up tempting wrong turns…"]} /></div>) : (
+            <div className="fade-in">
+              <Tex className="stepprompt" text={step.stepPrompt} />
+              <div className="stephint">Tap the move you'd make next, then check it.</div>
+              <div className="options">
+                {step.options.map((o, i) => {
+                  let cls = "opt";
+                  if (phase === "correct" && o.correct) cls += " right";
+                  else if (wrongIdx.includes(i)) cls += " wrong dim";
+                  else if (selected === i) cls += " sel";
+                  else if (phase === "correct") cls += " dim";
+                  if (shakeIdx === i) cls += " shake";
+                  const disabled = phase === "correct" || wrongIdx.includes(i);
+                  const showWhy = phase === "correct" && !o.correct && o.whyWrong;
+                  return (<button key={i} className={cls} disabled={disabled} onClick={() => { if (!disabled) setSelected(i); }}><span className="key">{KEYS[i]}</span><span className="optwrap"><Tex text={o.text} />{showWhy ? <div className="optwhy">✗ {o.whyWrong}</div> : null}</span></button>);
+                })}
+              </div>
+              {phase === "correct" && (
+                <div className="feedback good">
+                  <div className="ftitle">✅ Nice — that's the move{firstTry ? " (first try!)" : ""}</div>
+                  <Tex className="fbody" text={step.explanation} />
+                  {step.working ? (<div className="fwork"><div className="flbl">Working added</div>{step.workingType === "math" ? <MathBlock latex={step.working} /> : <Tex text={step.working} />}</div>) : null}
+                </div>
+              )}
+              <div className="actionrow"><button className="linklike" onClick={() => setExplain(true)}>💬 I don't get it — ask the tutor</button></div>
+              {phase === "correct" ? <button className="btn" onClick={next}>{step.isFinalStep ? "Finish question 🎯" : "Continue →"}</button> : <button className="btn" disabled={selected == null} onClick={check}>Check answer</button>}
+            </div>
+          )}
+        </div>
+      )}
+      {explain && step && <ExplainSheet q={prep} step={step} onClose={() => setExplain(false)} />}
+    </div>
+  );
+}
+
+function Uploader({ onReady, reviewCount, onReview }) {
+  const [paperFile, setPaperFile] = useState(null);
+  const [msFile, setMsFile] = useState(null);
+  const [working, setWorking] = useState(false);
+  const [err, setErr] = useState("");
+  async function start() {
+    if (!paperFile) return;
+    setWorking(true); setErr("");
+    try {
+      const pDoc = await loadPdfDoc(paperFile);
+      const paperText = await extractPdfText(pDoc);
+      let msText = "";
+      if (msFile) { const mDoc = await loadPdfDoc(msFile); msText = await extractPdfText(mDoc); }
+      let questions;
+      if (paperText.replace(/\s/g, "").length < 200) {
+        // No usable text layer (scanned). Fall back to one PDF-image pass.
+        const pB64 = await fileToBase64(paperFile); const mB64 = msFile ? await fileToBase64(msFile) : null;
+        questions = await extractPaperFromPdf(pB64, mB64);
+      } else {
+        questions = await extractPaperFromText(paperText, msText);
+      }
+      onReady({ paper: { doc: pDoc, numPages: pDoc.numPages, name: paperFile.name }, hasMs: !!msFile, questions });
+    } catch (e) { setErr(e.message || String(e)); setWorking(false); }
+  }
+  if (working) return (<div className="card fade-in"><Loading msgs={["Reading your PDFs…", "Pulling out the questions…", "Almost ready…"]} sub="Extracting text in your browser, then structuring it once." /></div>);
+  const Drop = ({ file, set, title, optional }) => {
+    const ref = useRef(null);
+    return (
+      <div className={"drop" + (file ? " done" : "")} onClick={() => ref.current && ref.current.click()}>
+        <div className="ic">{file ? "✓" : "📄"}</div>
+        <div style={{ flex: 1 }}><div className="t">{title}{optional ? <span className="pill optional">optional</span> : <span className="pill">required</span>}</div><div className="s">{file ? file.name : "Tap to choose a PDF"}</div></div>
+        <input ref={ref} type="file" accept="application/pdf,.pdf" style={{ display: "none" }} onChange={(e) => set(e.target.files[0] || null)} />
+      </div>
+    );
+  };
+  return (
+    <div className="fade-in">
+      <div className="card hero">
+        <h1>Learn the <span style={{ color: "var(--grass-dk)" }}>next step</span>,<br />not just the answer.</h1>
+        <div className="tag">Upload a past paper and Stepwise drills you on the technique — one tap at a time.</div>
+        <div style={{ textAlign: "left", marginTop: 18 }}>
+          <Drop file={paperFile} set={setPaperFile} title="Exam paper" />
+          <div style={{ height: 12 }} />
+          <Drop file={msFile} set={setMsFile} title="Mark scheme" optional />
+        </div>
+        {err && <div className="errbox">{err}</div>}
+        <div style={{ height: 18 }} />
+        <button className="btn" disabled={!paperFile} onClick={start}>{paperFile ? "Let's go →" : "Add a paper to start"}</button>
+        {reviewCount > 0 && (<><div style={{ height: 12 }} /><button className="btn ghost" onClick={onReview}>🧠 Review your {reviewCount} past mistake{reviewCount === 1 ? "" : "s"}</button></>)}
+        <div className="note">The mark scheme makes the steps match the official method exactly. Best with text-based PDFs (most exam-board / PMT papers); scanned papers fall back to a slower image read.</div>
+      </div>
+    </div>
+  );
+}
+
+function AuthGate({ onAuthed }) {
+  const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState(""); const [pw, setPw] = useState("");
+  const [err, setErr] = useState(""); const [busy, setBusy] = useState(false);
+  async function submit() {
+    setBusy(true); setErr("");
+    try { await doAuth(mode, email.trim(), pw); await onAuthed(); }
+    catch (e) { setErr(e.message || String(e)); setBusy(false); }
+  }
+  return (
+    <div className="fade-in">
+      <div className="card hero">
+        <h1>Welcome to <span style={{ color: "var(--grass-dk)" }}>Stepwise</span></h1>
+        <div className="tag">{mode === "login" ? "Log in to pick up where you left off." : "Create an account to save your progress and mistakes."}</div>
+        <div style={{ textAlign: "left", marginTop: 18 }}>
+          <input className="authinput" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input className="authinput" type="password" placeholder="Password (6+ characters)" value={pw} onChange={(e) => setPw(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !busy && email && pw) submit(); }} />
+        </div>
+        {err && <div className="errbox">{err}</div>}
+        <div style={{ height: 16 }} />
+        <button className="btn" disabled={busy || !email || !pw} onClick={submit}>{busy ? "…" : (mode === "login" ? "Log in" : "Sign up")}</button>
+        <div style={{ height: 10 }} />
+        <button className="linklike" style={{ margin: "0 auto" }} onClick={() => { setMode(mode === "login" ? "signup" : "login"); setErr(""); }}>{mode === "login" ? "New here? Create an account" : "Already have an account? Log in"}</button>
+        <div className="note">Your email and a hashed password are stored on your own server. History and mistakes sync to your account.</div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [authed, setAuthed] = useState(!!AUTH_TOKEN);
+  const [booting, setBooting] = useState(!!AUTH_TOKEN);
+  const [store, setStore] = useState({ history: [], reviews: [], xp: 0 });
+  const [session, setSession] = useState(null);
+  const [current, setCurrent] = useState(null);
+  const [review, setReview] = useState(false);
+
+  useEffect(() => {
+    if (!AUTH_TOKEN) return;
+    (async () => {
+      try {
+        const r = await api("/api/data");
+        if (r.status === 401) { logout(); setAuthed(false); }
+        else { const d = r.ok ? await r.json() : null; setStore(d ? { history: d.history || [], reviews: d.reviews || [], xp: d.xp || 0 } : { history: [], reviews: [], xp: 0 }); setAuthed(true); }
+      } catch (e) { setAuthed(false); }
+      setBooting(false);
+    })();
+  }, []);
+
+  const update = useCallback((fn) => { setStore((prev) => { const next = fn(prev); persistStore(next); return next; }); }, []);
+  const award = useCallback((n) => update((d) => ({ ...d, xp: (d.xp || 0) + n })), [update]);
+  const addReview = useCallback((item) => update((d) => ({ ...d, reviews: [...(d.reviews || []), item].slice(-200) })), [update]);
+  const clearReview = useCallback((id) => update((d) => ({ ...d, reviews: (d.reviews || []).filter((r) => r.id !== id) })), [update]);
+  const completeQuestion = useCallback((s) => update((d) => { const others = (d.history || []).filter((h) => !(h.paperName === s.paperName && h.qnum === s.qnum)); return { ...d, history: [{ ...s, status: "complete" }, ...others].slice(0, 400) }; }), [update]);
+  const isDone = (qnum) => session && (store.history || []).some((h) => h.paperName === session.paper.name && h.qnum === qnum);
+
+  function Header({ showControls }) {
+    return (
+      <div className="topbar">
+        <div className="logo"><span className="mark">✦</span> Stepwise</div>
+        <div className="spacer" />
+        {showControls && <div className="xp">⚡ {store.xp || 0} XP</div>}
+        {showControls && (session || review) && (<button className="iconbtn" title="Home" onClick={() => { setSession(null); setCurrent(null); setReview(false); }}>⌂</button>)}
+        {showControls && (<button className="iconbtn" title="Log out" onClick={() => { logout(); setAuthed(false); setSession(null); setCurrent(null); setReview(false); }}>⎋</button>)}
+      </div>
+    );
+  }
+
+  if (booting) return (<><Header showControls={false} /><div className="loading"><div className="spinner" /><div className="lmsg">Loading your progress…</div></div></>);
+  if (!authed) return (<><Header showControls={false} /><AuthGate onAuthed={async () => { const d = await loadStore(); setStore(d); setAuthed(true); }} /></>);
+
+  return (
+    <>
+      <Header showControls={true} />
+      {review && (<ReviewSession items={store.reviews} onClearReview={clearReview} onExit={() => setReview(false)} />)}
+      {!review && !session && (<Uploader onReady={setSession} reviewCount={(store.reviews || []).length} onReview={() => setReview(true)} />)}
+      {!review && session && !current && (
+        <div className="fade-in">
+          <div style={{ padding: "6px 4px 2px", display: "flex", alignItems: "baseline", gap: 8 }}><h2 style={{ fontSize: 22 }}>Pick a question</h2><span style={{ color: "var(--muted)", fontWeight: 800, fontSize: 13 }}>{session.questions.length} found{session.hasMs ? " · mark scheme loaded" : ""}</span></div>
+          <div style={{ color: "var(--muted)", fontWeight: 700, fontSize: 13, padding: "0 4px 8px", wordBreak: "break-word" }}>{session.paper.name}</div>
+          {(store.reviews || []).length > 0 && (
+            <div className="card qcard" style={{ borderColor: "#FAD0D8", background: "#FFF6F8" }} onClick={() => setReview(true)}>
+              <div className="qnum" style={{ background: "linear-gradient(160deg,var(--berry),#ff7d92)", boxShadow: "0 4px 0 var(--berry-dk)" }}>🧠</div>
+              <div><div className="qt">Review your mistakes</div><div className="qs">{store.reviews.length} step{store.reviews.length === 1 ? "" : "s"} to recall from past questions</div></div>
+              <div className="chev">›</div>
+            </div>
+          )}
+          {session.questions.map((q, i) => {
+            const done = isDone(q.number);
+            return (
+              <div className="card qcard" key={i} onClick={() => setCurrent(q)}>
+                <div className="qnum" style={done ? { background: "linear-gradient(160deg,var(--grass),#5ad982)", boxShadow: "0 4px 0 var(--grass-dk)" } : null}>{q.number}</div>
+                <div><div className="qt">Question {q.number} {done ? <span style={{ color: "var(--grass-dk)" }}>✓ done</span> : null}</div><div className="qs">{q.summary}</div></div>
+                <div className="chev">›</div>
+              </div>
+            );
+          })}
+          <div className="note" style={{ textAlign: "center" }}>Worked questions get a ✓ and are remembered on your account. Slip on a step and it's saved for active recall.</div>
+        </div>
+      )}
+      {!review && session && current && (
+        <Solver key={current.number} paper={session.paper} hasMs={session.hasMs} question={current} onExit={() => setCurrent(null)} onAward={award} onAddReview={addReview} onComplete={completeQuestion} />
+      )}
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+# Tells Netlify where the website lives, where the functions are,
+# and routes /api/* to the right function.
+
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+# API routes (must come BEFORE the catch-all below)
+[[redirects]]
+  from = "/api/auth"
+  to = "/.netlify/functions/auth"
+  status = 200
+
+[[redirects]]
+  from = "/api/data"
+  to = "/.netlify/functions/data"
+  status = 200
+
+[[redirects]]
+  from = "/api/claude"
+  to = "/.netlify/functions/claude"
+  status = 200
+
+# Everything else serves the app
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

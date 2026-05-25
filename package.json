@@ -1,0 +1,11 @@
+{
+  "name": "stepwise-netlify",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Stepwise on Netlify (Functions + Blobs).",
+  "dependencies": {
+    "@netlify/blobs": "^7.0.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2"
+  }
+}
